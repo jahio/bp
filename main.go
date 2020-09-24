@@ -1,10 +1,11 @@
 package main
 
 import(
+  "os"
   "fmt"
   "log"
   "time"
-  "errors"
+  _ "errors"
   "net/http"
   "encoding/json"
   "gorm.io/gorm"
@@ -15,42 +16,70 @@ import(
 
 type Entry struct {
   gorm.Model
-  Diastolic  uint
-  Systolic   uint
-  Heartrate  uint
+  Diastolic  uint  `json:diastolic`
+  Systolic   uint  `json:systolic`
+  Heartrate  uint  `json:heartrate`
 }
 
 type RequestStatus struct {
   Status  string  `json:"status"`
+  Message string  `json:"message,omitempty"`
 }
 
-func checkHeader(r *http.Request) error {
-  if r.Header.Get("Content-Type") != "" {
-    ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
-    if ctype != "application/json" {
-      return errors.New("Content-Type must be application/json")
+func jsonParseError(w http.ResponseWriter, r *http.Request) {
+  msg, _ := json.Marshal(RequestStatus{Status: "JSON Parse Error"})
+  w.Header().Add("Content-Type", "application/json")
+  w.WriteHeader(http.StatusBadRequest)
+  w.Write(msg)
+}
+
+func checkHeaderMiddleware(next http.Handler) http.Handler {
+  return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    log.Println(r.RequestURI) // testing
+    if r.Header.Get("Content-Type") != "" {
+      ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
+      if ctype != "application/json" {
+        msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "Content-Type must be application/json"})
+        if err != nil {
+          log.Println(err.Error())
+        }
+        w.Header().Add("Content-Type", "application/json")
+        w.WriteHeader(http.StatusBadRequest)
+        w.Write(msg)
+        return
+      }
+    } else {
+      msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "No Content-Type header provided in request"})
+      if err != nil {
+        log.Println(err.Error())
+      }
+      w.Header().Add("Content-Type", "application/json")
+      w.WriteHeader(http.StatusBadRequest)
+      w.Write(msg)
+      return
     }
-  } else {
-    return errors.New("No Content-Type header provided in request")
-  }
-  return nil
+    // Headers look good
+    next.ServeHTTP(w, r)
+  })
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-  err := checkHeader(r)
-  if err != nil {
-    msg, _ := json.Marshal(RequestStatus{Status: "Error: " + err.Error()})
-    http.Error(w, string(msg), http.StatusBadRequest)
-    return
-  }
   resp, _ := json.Marshal(RequestStatus{Status: "OK"})
   w.Header().Add("Content-Type", "application/json")
   w.Write(resp)
 }
 
-// func NewEntryHandler(w http.ResponseWriter, r *http.Request) {
-//
-// }
+func NewEntryHandler(w http.ResponseWriter, r *http.Request) {
+  var entry Entry
+  err := json.NewDecoder(r.Body).Decode(&entry)
+  if err != nil {
+    jsonParseError(w, r)
+    log.Println("JSON parse error: ", r.RequestURI)
+    return
+  }
+
+  fmt.Fprintf(os.Stdout, "%+v", entry)
+}
 
 func main() {
   fmt.Println("Beginning database automigrate...")
@@ -64,6 +93,8 @@ func main() {
   // Set up HTTP routing for requests/responses
   r := mux.NewRouter()
   r.HandleFunc("/", HomeHandler)
+  r.HandleFunc("/entries/new", NewEntryHandler)
+  r.Use(checkHeaderMiddleware)
   srv := &http.Server{
     Handler: r,
     Addr:    "0.0.0.0:9000",
