@@ -5,6 +5,7 @@ import(
   "log"
   "time"
   "net/http"
+  "encoding/json"
   "gorm.io/gorm"
   "gorm.io/driver/sqlite"
   "github.com/gorilla/mux"
@@ -17,9 +18,33 @@ type Entry struct {
   Heartrate  uint
 }
 
+type RequestStatus struct {
+  Status  string
+}
+
+func HTTPError(w http.ResponseWriter, err error) {
+  log.Println("Error in application:", err)
+  resp, err := json.Marshal(RequestStatus{Status: "Error"})
+  if err != nil {
+    log.Println(err)
+    w.WriteHeader(http.StatusInternalServerError)
+    return
+  }
+  w.Header().Add("Content-Type", "application/json")
+  w.WriteHeader(http.StatusInternalServerError)
+  w.Write(resp)
+  return
+}
+
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
+  resp, err := json.Marshal(RequestStatus{Status: "OK"})
+  if err != nil {
+    HTTPError(w, err)
+    return
+  }
+  w.Header().Add("Content-Type", "application/json")
   w.WriteHeader(http.StatusOK)
-  fmt.Fprintf(w, "{ \"status\":\"OK\" }")
+  w.Write(resp)
 }
 
 func main() {
