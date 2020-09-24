@@ -4,11 +4,13 @@ import(
   "fmt"
   "log"
   "time"
+  "errors"
   "net/http"
   "encoding/json"
   "gorm.io/gorm"
   "gorm.io/driver/sqlite"
   "github.com/gorilla/mux"
+  "github.com/golang/gddo/httputil/header"
 )
 
 type Entry struct {
@@ -19,33 +21,36 @@ type Entry struct {
 }
 
 type RequestStatus struct {
-  Status  string
+  Status  string  `json:"status"`
 }
 
-func HTTPError(w http.ResponseWriter, err error) {
-  log.Println("Error in application:", err)
-  resp, err := json.Marshal(RequestStatus{Status: "Error"})
-  if err != nil {
-    log.Println(err)
-    w.WriteHeader(http.StatusInternalServerError)
-    return
+func checkHeader(r *http.Request) error {
+  if r.Header.Get("Content-Type") != "" {
+    ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
+    if ctype != "application/json" {
+      return errors.New("Content-Type must be application/json")
+    }
+  } else {
+    return errors.New("No Content-Type header provided in request")
   }
-  w.Header().Add("Content-Type", "application/json")
-  w.WriteHeader(http.StatusInternalServerError)
-  w.Write(resp)
-  return
+  return nil
 }
 
 func HomeHandler(w http.ResponseWriter, r *http.Request) {
-  resp, err := json.Marshal(RequestStatus{Status: "OK"})
+  err := checkHeader(r)
   if err != nil {
-    HTTPError(w, err)
+    msg, _ := json.Marshal(RequestStatus{Status: "Error: " + err.Error()})
+    http.Error(w, string(msg), http.StatusBadRequest)
     return
   }
+  resp, _ := json.Marshal(RequestStatus{Status: "OK"})
   w.Header().Add("Content-Type", "application/json")
-  w.WriteHeader(http.StatusOK)
   w.Write(resp)
 }
+
+// func NewEntryHandler(w http.ResponseWriter, r *http.Request) {
+//
+// }
 
 func main() {
   fmt.Println("Beginning database automigrate...")
@@ -65,6 +70,6 @@ func main() {
     WriteTimeout: 15 * time.Second,
     ReadTimeout:  15 * time.Second,
   }
-  
+
   log.Fatal(srv.ListenAndServe())
 }
