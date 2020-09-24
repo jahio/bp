@@ -1,11 +1,9 @@
 package main
 
 import(
-  "os"
   "fmt"
   "log"
   "time"
-  _ "errors"
   "net/http"
   "encoding/json"
   "gorm.io/gorm"
@@ -30,6 +28,13 @@ func jsonParseError(w http.ResponseWriter, r *http.Request) {
   msg, _ := json.Marshal(RequestStatus{Status: "JSON Parse Error"})
   w.Header().Add("Content-Type", "application/json")
   w.WriteHeader(http.StatusBadRequest)
+  w.Write(msg)
+}
+
+func applicationError(w http.ResponseWriter, r *http.Request, errMsg string) {
+  msg, _ := json.Marshal(RequestStatus{Status: "Error", Message: errMsg})
+  w.Header().Add("Content-Type", "application/json")
+  w.WriteHeader(http.StatusInternalServerError)
   w.Write(msg)
 }
 
@@ -78,7 +83,20 @@ func NewEntryHandler(w http.ResponseWriter, r *http.Request) {
     return
   }
 
-  fmt.Fprintf(os.Stdout, "%+v", entry)
+  db, err := gorm.Open(sqlite.Open("bp.db"), &gorm.Config{})
+  if err != nil {
+    applicationError(w, r, "There is a problem with the application database")
+    log.Println("Could not open bp.db for request")
+    return
+  }
+
+  // Try to create the object
+  db.Create(&entry)
+
+  msg, _ := json.Marshal(entry)
+  w.Header().Add("Content-Type", "application/json")
+  w.WriteHeader(http.StatusCreated)
+  w.Write(msg)
 }
 
 func main() {
@@ -96,10 +114,12 @@ func main() {
   r.HandleFunc("/entries/new", NewEntryHandler)
   r.Use(checkHeaderMiddleware)
   srv := &http.Server{
-    Handler: r,
-    Addr:    "0.0.0.0:9000",
-    WriteTimeout: 15 * time.Second,
-    ReadTimeout:  15 * time.Second,
+    Handler:           r,
+    Addr:              "0.0.0.0:9000",
+    WriteTimeout:      15 * time.Second,
+    ReadTimeout:       15 * time.Second,
+    IdleTimeout:       15 * time.Second,
+    ReadHeaderTimeout: 15 * time.Second,
   }
 
   log.Fatal(srv.ListenAndServe())
