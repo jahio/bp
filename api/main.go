@@ -63,6 +63,7 @@ func checkHeaderMiddleware(next http.Handler) http.Handler {
       w.Write(msg)
       return
     }
+
     // Headers look good
     next.ServeHTTP(w, r)
   })
