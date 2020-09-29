@@ -40,7 +40,7 @@ func applicationError(w http.ResponseWriter, r *http.Request, errMsg string) {
 
 func checkHeaderMiddleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-    log.Println(r.RequestURI) // testing
+    log.Println(r.RemoteAddr, r.Method, r.RequestURI) // stdout logging
     if r.Header.Get("Content-Type") != "" {
       ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
       if ctype != "application/json" {
