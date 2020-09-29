@@ -1,2 +1,3 @@
 api/bp.db
 api/bp
+api/*.sqlite
