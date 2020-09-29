@@ -41,10 +41,21 @@ func applicationError(w http.ResponseWriter, r *http.Request, errMsg string) {
 func checkHeaderMiddleware(next http.Handler) http.Handler {
   return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
     log.Println(r.RemoteAddr, r.Method, r.RequestURI) // stdout logging
-    if r.Header.Get("Content-Type") != "" {
-      ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
-      if ctype != "application/json" {
-        msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "Content-Type must be application/json"})
+    if r.Method != http.MethodGet {
+      if r.Header.Get("Content-Type") != "" {
+        ctype, _ := header.ParseValueAndParams(r.Header, "Content-Type")
+        if ctype != "application/json" {
+          msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "Content-Type must be application/json"})
+          if err != nil {
+            log.Println(err.Error())
+          }
+          w.Header().Add("Content-Type", "application/json")
+          w.WriteHeader(http.StatusBadRequest)
+          w.Write(msg)
+          return
+        }
+      } else {
+        msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "No Content-Type header provided in request"})
         if err != nil {
           log.Println(err.Error())
         }
@@ -53,15 +64,6 @@ func checkHeaderMiddleware(next http.Handler) http.Handler {
         w.Write(msg)
         return
       }
-    } else {
-      msg, err := json.Marshal(RequestStatus{Status: "Error", Message: "No Content-Type header provided in request"})
-      if err != nil {
-        log.Println(err.Error())
-      }
-      w.Header().Add("Content-Type", "application/json")
-      w.WriteHeader(http.StatusBadRequest)
-      w.Write(msg)
-      return
     }
 
     // Headers look good
@@ -111,8 +113,8 @@ func main() {
 
   // Set up HTTP routing for requests/responses
   r := mux.NewRouter()
-  r.HandleFunc("/", HomeHandler)
-  r.HandleFunc("/entries/new", NewEntryHandler)
+  r.HandleFunc("/", HomeHandler).Methods("GET")
+  r.HandleFunc("/entries", NewEntryHandler).Methods("POST")
   r.Use(checkHeaderMiddleware)
   srv := &http.Server{
     Handler:           r,
