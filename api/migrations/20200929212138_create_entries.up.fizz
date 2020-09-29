@@ -1,0 +1,10 @@
+create_table("entries") {
+	t.Column("id", "uuid", {primary: true})
+	t.Timestamps()
+  t.Column("systolic", "integer", {"null": "false"})
+  t.Column("diastolic", "integer", {"null": "false"})
+  t.Column("heartrate", "integer", {"null": "false"})
+}
+
+add_index("entries", "created_at", {})
+add_index("entries", "updated_at", {})
