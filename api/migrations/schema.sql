@@ -26,8 +26,8 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.entries (
     id uuid NOT NULL,
-    created_at timestamp without time zone NOT NULL,
-    updated_at timestamp without time zone NOT NULL,
+    created_at integer,
+    updated_at integer,
     systolic integer,
     diastolic integer,
     heartrate integer
@@ -60,13 +60,6 @@ ALTER TABLE ONLY public.entries
 --
 
 CREATE INDEX entries_created_at_idx ON public.entries USING btree (created_at);
-
-
---
--- Name: entries_updated_at_idx; Type: INDEX; Schema: public; Owner: jah
---
-
-CREATE INDEX entries_updated_at_idx ON public.entries USING btree (updated_at);
 
 
 --
