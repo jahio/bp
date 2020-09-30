@@ -2,9 +2,11 @@ package main
 
 import (
 	"github.com/gobuffalo/pop"
-	"jahio/bp/models"
+	"github.com/gin-gonic/gin"
+	_ "jahio/bp/models"
+	"jahio/bp/controllers"
 	"log"
-	"fmt"
+	_ "fmt"
 	"os"
 	"strconv"
 )
@@ -21,6 +23,20 @@ func (a *appConfig) validRuntime(r string) bool {
 		return true
 	}
 	return false
+}
+
+func setupRouter(db *pop.Connection, config *appConfig) *gin.Engine {
+	if config.Runtime == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	}
+
+	r := gin.Default()
+
+	r.GET("/", func(c *gin.Context) {
+		controllers.StatusController(db, c)
+	})
+
+	return r
 }
 
 func main() {
@@ -40,6 +56,8 @@ func main() {
 		}
 	}
 
+	// Set the application port
+	// Default fallback: 9000
 	appPort, isSet := os.LookupEnv("APP_PORT")
 	if !isSet {
 		config.Port = 9000
@@ -53,20 +71,24 @@ func main() {
 		}
 	}
 
-	log.Println("App runtime is", config.Runtime)
-	log.Println("App port is", config.Port)
+	log.Println("Starting app in", config.Runtime, "mode")
+	log.Println("Binding to port", config.Port)
 
 	db, err := pop.Connect(config.Runtime)
 	if err != nil {
 		log.Panic(err)
 	}
 
-	entry := models.Entry{Diastolic: 80, Systolic: 120, Heartrate: 85}
-	verrs, err := db.ValidateAndSave(&entry)
-	if verrs.Count() > 0 {
-		log.Println(fmt.Sprintf("Error while saving: %s\n", verrs))
-	}
-	if err != nil {
-		log.Panic(err)
-	}
+	// Instantiate the router and bind
+	r := setupRouter(db, &config)
+	r.Run("0.0.0.0:" + strconv.Itoa(config.Port))
+
+	// entry := models.Entry{Diastolic: 80, Systolic: 120, Heartrate: 85}
+	// verrs, err := db.ValidateAndSave(&entry)
+	// if verrs.Count() > 0 {
+	// 	log.Println(fmt.Sprintf("Error while saving: %s\n", verrs))
+	// }
+	// if err != nil {
+	// 	log.Panic(err)
+	// }
 }
