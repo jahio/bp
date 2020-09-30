@@ -1,12 +1,21 @@
 ---
 development:
-  dialect: "sqlite3"
-  database: "/Users/jah/Projects/bp/api/bp_development.sqlite"
+  dialect: postgres
+  database: bp_dev
+  user: jah
+  host: 127.0.0.1
+  pool: 5
 
 test:
-  dialect: "sqlite3"
-  database: "/tmp/bp_test.sqlite"
+  dialect: postgres
+  database: bp_test
+  user: jah
+  host: 127.0.0.1
+  pool: 5
 
 production:
-  dialect: "sqlite3"
-  database: "/Users/jah/Projects/bp/api/bp_production.sqlite"
+  dialect: postgres
+  database: bp_prod
+  user: jah
+  host: 127.0.0.1
+  pool: 5

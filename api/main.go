@@ -1,9 +1,10 @@
 package main
 
 import (
-	_ "github.com/gobuffalo/pop"
-	_ "jahio/bp/models"
+	"github.com/gobuffalo/pop"
+	"jahio/bp/models"
 	"log"
+	"fmt"
 	"os"
 	"strconv"
 )
@@ -11,10 +12,6 @@ import (
 type appConfig struct {
 	Port    int
 	Runtime string
-}
-
-func (a *appConfig) dbName() string {
-	return "bp_" + a.Runtime
 }
 
 func (a *appConfig) validRuntime(r string) bool {
@@ -58,5 +55,18 @@ func main() {
 
 	log.Println("App runtime is", config.Runtime)
 	log.Println("App port is", config.Port)
-	log.Println("App database is", config.dbName())
+
+	db, err := pop.Connect(config.Runtime)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	entry := models.Entry{Diastolic: 80, Systolic: 120, Heartrate: 85}
+	verrs, err := db.ValidateAndSave(&entry)
+	if verrs.Count() > 0 {
+		log.Println(fmt.Sprintf("Error while saving: %s\n", verrs))
+	}
+	if err != nil {
+		log.Panic(err)
+	}
 }
