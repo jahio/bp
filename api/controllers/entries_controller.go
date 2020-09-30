@@ -1,18 +1,57 @@
 package controllers
 
-import(
-	_ "jahio/bp/models"
+import (
 	"github.com/gin-gonic/gin"
 	"github.com/gobuffalo/pop"
+	"jahio/bp/models"
 	"net/http"
 )
 
-type statusMessage struct {
-	Status  string `json:"status"`
-	Message string `json:"message"`
+func NewEntryController(db *pop.Connection, c *gin.Context) {
+	entry := models.Entry{}
+	err := c.ShouldBind(&entry)
+	if err != nil {
+		// Couldn't parse the JSON into the entry object -- bad request
+		status := StatusMessage{Status: "Error", Message: err.Error()}
+		c.JSON(http.StatusBadRequest, status)
+		return
+	}
+
+	// Attempt to save the object to the database
+	verrs, err := db.ValidateAndSave(&entry)
+	if verrs.Count() > 0 {
+		// Convert the string map to a singular string
+		statusMsg := getValidationErrors(verrs.Errors)
+		status := StatusMessage{Status: "Error", Message: statusMsg}
+		c.JSON(http.StatusBadRequest, status)
+		return
+	}
+	if err != nil {
+		status := StatusMessage{Status: "Error", Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, status)
+		return
+	}
+	c.JSON(http.StatusOK, entry)
 }
 
-func StatusController(db *pop.Connection, c *gin.Context) {
-	status := statusMessage{Status:"OK", Message:"All systems go!"}
-	c.JSON(http.StatusOK, status)
+func GetEntriesController(db *pop.Connection, c *gin.Context) {
+	entries := []models.Entry{}
+	err := db.Where("created_at > ?", c.Param("from")).Where("created_at < ?", c.Param("to")).All(&entries)
+	if err != nil {
+		status := StatusMessage{Status: "Error", Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, status)
+		return
+	}
+	c.JSON(http.StatusOK, entries)
+}
+
+func GetAllEntriesController(db *pop.Connection, c *gin.Context) {
+	entries := []models.Entry{}
+	err := db.All(&entries)
+	if err != nil {
+		status := StatusMessage{Status: "Error", Message: err.Error()}
+		c.JSON(http.StatusInternalServerError, status)
+		return
+	}
+	c.JSON(http.StatusOK, entries)
 }

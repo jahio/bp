@@ -13,9 +13,9 @@ type Entry struct {
 	ID        uuid.UUID `json:"id"         db:"id"`
 	CreatedAt int       `json:"created_at" db:"created_at"`
 	UpdatedAt int       `json:"updated_at" db:"updated_at"`
-	Systolic  int       `json:"systolic"   db:"systolic"`
-	Diastolic int       `json:"diastolic"  db:"diastolic"`
-	Heartrate int       `json:"heartrate"  db:"heartrate"`
+	Systolic  int       `json:"systolic"   db:"systolic"  binding:"required"`
+	Diastolic int       `json:"diastolic"  db:"diastolic" binding:"required"`
+	Heartrate int       `json:"heartrate"  db:"heartrate" binding:"required"`
 }
 
 // String is not required by pop and may be deleted
