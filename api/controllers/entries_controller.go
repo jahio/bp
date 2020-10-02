@@ -5,6 +5,7 @@ import (
 	"github.com/gobuffalo/pop"
 	"jahio/bp/models"
 	"net/http"
+	"log"
 )
 
 func NewEntryController(db *pop.Connection, c *gin.Context) {
@@ -14,6 +15,7 @@ func NewEntryController(db *pop.Connection, c *gin.Context) {
 		// Couldn't parse the JSON into the entry object -- bad request
 		status := StatusMessage{Status: "Error", Message: err.Error()}
 		c.JSON(http.StatusBadRequest, status)
+		log.Println(err)
 		return
 	}
 
@@ -24,11 +26,13 @@ func NewEntryController(db *pop.Connection, c *gin.Context) {
 		statusMsg := getValidationErrors(verrs.Errors)
 		status := StatusMessage{Status: "Error", Message: statusMsg}
 		c.JSON(http.StatusBadRequest, status)
+		log.Println(statusMsg)
 		return
 	}
 	if err != nil {
 		status := StatusMessage{Status: "Error", Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, status)
+		log.Println(err)
 		return
 	}
 	c.JSON(http.StatusOK, entry)
