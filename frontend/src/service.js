@@ -14,6 +14,17 @@ const ApiService = {
       console.log(error)
       return false;
     })
+  },
+
+  async getAllEntries() {
+    console.log("Getting all entries...")
+    axios.get(domain + '/entries')
+    .then(function (response) {
+      console.log(response)
+    })
+    .catch(function (error) {
+      console.log(error)
+    })
   }
 }
 
