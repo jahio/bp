@@ -14,11 +14,11 @@ function App() {
       <Link to="/graph">Graphs</Link>
 
       <Switch>
-        <Route path="/">
-          <NewEntry state={state} setState={setState} />
-        </Route>
         <Route path="/graph">
           <Graph />
+        </Route>
+        <Route path="/">
+          <NewEntry state={state} setState={setState} />
         </Route>
       </Switch>
     </Router>
