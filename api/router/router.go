@@ -2,6 +2,7 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/cors"
 	"github.com/gobuffalo/pop"
 	"jahio/bp/config"
 	"jahio/bp/controllers"
@@ -13,6 +14,7 @@ func SetupRouter(db *pop.Connection, cfg *config.AppConfig) *gin.Engine {
 	}
 
 	r := gin.Default()
+	r.Use(cors.Default())
 
 	r.GET("/", func(c *gin.Context) {
 		controllers.StatusController(db, c)
