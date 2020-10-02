@@ -10,7 +10,7 @@ import (
 
 func NewEntryController(db *pop.Connection, c *gin.Context) {
 	entry := models.Entry{}
-	err := c.ShouldBind(&entry)
+	err := c.ShouldBindJSON(&entry)
 	if err != nil {
 		// Couldn't parse the JSON into the entry object -- bad request
 		status := StatusMessage{Status: "Error", Message: err.Error()}
@@ -55,6 +55,7 @@ func GetAllEntriesController(db *pop.Connection, c *gin.Context) {
 	if err != nil {
 		status := StatusMessage{Status: "Error", Message: err.Error()}
 		c.JSON(http.StatusInternalServerError, status)
+		log.Println(err)
 		return
 	}
 	c.JSON(http.StatusOK, entries)

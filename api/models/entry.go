@@ -9,12 +9,12 @@ import (
 
 // Entry is used by pop to map your entries database table to your go code.
 type Entry struct {
-	ID        uuid.UUID         `json:"id"         db:"id"`
-	CreatedAt int               `json:"created_at" db:"created_at"`
-	UpdatedAt int               `json:"updated_at" db:"updated_at"`
-	Systolic  json.Number       `json:"systolic"   db:"systolic"  binding:"required"`
-	Diastolic json.Number       `json:"diastolic"  db:"diastolic" binding:"required"`
-	Heartrate json.Number       `json:"heartrate"  db:"heartrate" binding:"required"`
+	ID        uuid.UUID `json:"id"                db:"id"`
+	CreatedAt int       `json:"created_at"        db:"created_at"`
+	UpdatedAt int       `json:"updated_at"        db:"updated_at"`
+	Systolic  int       `json:"systolic,string"   db:"systolic"  binding:"required"`
+	Diastolic int       `json:"diastolic,string"  db:"diastolic" binding:"required"`
+	Heartrate int       `json:"heartrate,string"  db:"heartrate" binding:"required"`
 }
 
 // String is not required by pop and may be deleted
@@ -33,13 +33,13 @@ func (e Entries) String() string {
 }
 
 func (e *Entry) IsValid(errors *validate.Errors) {
-	if e.Systolic == "" {
+	if e.Systolic == 0 {
 		errors.Add("Systolic", "is required")
 	}
-	if e.Diastolic == "" {
+	if e.Diastolic == 0 {
 		errors.Add("Diastolic", "is required")
 	}
-	if e.Heartrate == "" {
+	if e.Heartrate == 0 {
 		errors.Add("Heartrate", "is required")
 	}
 }
