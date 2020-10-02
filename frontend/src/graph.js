@@ -44,10 +44,10 @@ function Graph(props) {
   // Cycle through the entries and update the graph state
   entries.forEach((e) => {
     // Append to the x axis
-    let at = new Date(e.created_at * 1000).toLocaleString("en-us")
+    let at = new Date(e.created_at * 1000).toLocaleString(navigator.languages[0])
     state.options.xaxis.categories.push(at)
 
-    // Append to the systolic array
+    // Append to the measurement arrays
     state.series.forEach((series) => {
       switch(series.name) {
         case "systolic":
