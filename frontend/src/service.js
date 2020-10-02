@@ -17,14 +17,12 @@ const ApiService = {
   },
 
   async getAllEntries() {
-    console.log("Getting all entries...")
-    axios.get(domain + '/entries')
-    .then(function (response) {
-      console.log(response)
-    })
-    .catch(function (error) {
+    try {
+      let entries = await axios.get(domain + '/entries')
+      return entries.data
+    } catch (error) {
       console.log(error)
-    })
+    }
   }
 }
 
