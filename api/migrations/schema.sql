@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 12.3
--- Dumped by pg_dump version 12.3
+-- Dumped from database version 15.1 (Homebrew)
+-- Dumped by pg_dump version 15.1 (Homebrew)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -21,7 +21,7 @@ SET default_tablespace = '';
 SET default_table_access_method = heap;
 
 --
--- Name: entries; Type: TABLE; Schema: public; Owner: jah
+-- Name: entries; Type: TABLE; Schema: public; Owner: dev
 --
 
 CREATE TABLE public.entries (
@@ -34,10 +34,10 @@ CREATE TABLE public.entries (
 );
 
 
-ALTER TABLE public.entries OWNER TO jah;
+ALTER TABLE public.entries OWNER TO dev;
 
 --
--- Name: schema_migration; Type: TABLE; Schema: public; Owner: jah
+-- Name: schema_migration; Type: TABLE; Schema: public; Owner: dev
 --
 
 CREATE TABLE public.schema_migration (
@@ -45,10 +45,10 @@ CREATE TABLE public.schema_migration (
 );
 
 
-ALTER TABLE public.schema_migration OWNER TO jah;
+ALTER TABLE public.schema_migration OWNER TO dev;
 
 --
--- Name: entries entries_pkey; Type: CONSTRAINT; Schema: public; Owner: jah
+-- Name: entries entries_pkey; Type: CONSTRAINT; Schema: public; Owner: dev
 --
 
 ALTER TABLE ONLY public.entries
@@ -56,14 +56,22 @@ ALTER TABLE ONLY public.entries
 
 
 --
--- Name: entries_created_at_idx; Type: INDEX; Schema: public; Owner: jah
+-- Name: schema_migration schema_migration_pkey; Type: CONSTRAINT; Schema: public; Owner: dev
+--
+
+ALTER TABLE ONLY public.schema_migration
+    ADD CONSTRAINT schema_migration_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: entries_created_at_idx; Type: INDEX; Schema: public; Owner: dev
 --
 
 CREATE INDEX entries_created_at_idx ON public.entries USING btree (created_at);
 
 
 --
--- Name: schema_migration_version_idx; Type: INDEX; Schema: public; Owner: jah
+-- Name: schema_migration_version_idx; Type: INDEX; Schema: public; Owner: dev
 --
 
 CREATE UNIQUE INDEX schema_migration_version_idx ON public.schema_migration USING btree (version);

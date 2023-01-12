@@ -2,20 +2,13 @@
 development:
   dialect: postgres
   database: bp_dev
-  user: jah
+  user: dev
+  password: dev
   host: 127.0.0.1
   pool: 5
 
 test:
-  dialect: postgres
-  database: bp_test
-  user: jah
-  host: 127.0.0.1
-  pool: 5
+  url: {{envOr "DATABASE_URL" "postgres://dev:dev@127.0.0.1:5432/bp_test"}}
 
 production:
-  dialect: postgres
-  database: bp_prod
-  user: jah
-  host: 127.0.0.1
-  pool: 5
+  url: {{envOr "DATABASE_URL" "postgres://dev:dev@127.0.0.1:5432/bp_prod"}}
